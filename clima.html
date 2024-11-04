@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clima para Colgar la Ropa</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #e6f7ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        #map {
+            height: 400px;
+            width: 50%;
+        }
+
+        .info {
+            padding: 20px;
+            width: 50%;
+            text-align: center;
+            background: #f9f9f9;
+        }
+
+        .info h1 {
+            color: #007acc;
+            margin-top: 0;
+        }
+
+        .info label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .info #address {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .info #resultado {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-top: 20px;
+        }
+
+        .info #resultado p {
+            margin: 5px 0;
+        }
+
+        .highlight {
+            color: #007acc;
+            font-weight: bold;
+        }
+
+        .weather-image {
+            width: 100px;
+            margin-top: 20px;
+        }
+    </style>
+    <script>
+        const openCageApiKey = "1f2487fb0f084398b44c82bc7aa8903a";
+        let map;
+        let marker;
+
+        function inicializarMapa() {
+            map = L.map('map').setView([0, 0], 2);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+        }
+
+        function obtenerCoordenadas() {
+            const direccion = document.getElementById("address").value;
+            if (!direccion) {
+                alert("Por favor, ingresa una dirección.");
+                return;
+            }
+            
+            const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(direccion)}&key=${openCageApiKey}`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.results.length > 0) {
+                        const lat = data.results[0].geometry.lat;
+                        const lon = data.results[0].geometry.lng;
+                        actualizarMapa(lat, lon);
+                        obtenerClima(lat, lon);
+                    } else {
+                        alert("No se encontró la ubicación. Intenta con otra dirección.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error al obtener las coordenadas:", error);
+                    alert("Hubo un problema al obtener las coordenadas.");
+                });
+        }
+
+        function actualizarMapa(lat, lon) {
+            map.setView([lat, lon], 12);
+
+            if (marker) {
+                marker.setLatLng([lat, lon]);
+            } else {
+                marker = L.marker([lat, lon]).addTo(map);
+            }
+        }
+
+        function obtenerClima(lat, lon) {
+            const apiKey = "c633509e25000cc2c30c7bb4d15b4e5e";
+            const url = `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const descripcion = data.weather[0].description;
+                    const humedad = data.main.humidity;
+                    const temperatura = data.main.temp;
+
+                    let mensaje;
+                    let imagen;
+
+                    if (descripcion.includes("rain") || descripcion.includes("lluvia")) {
+                        mensaje = "No es recomendable colgar la ropa afuera: está lloviendo.";
+                        imagen = "https://example.com/rain.png";  // Cambia esto a una URL real de una imagen de lluvia
+                    } else if (humedad > 80) {
+                        mensaje = "No es recomendable colgar la ropa afuera: la humedad es muy alta.";
+                        imagen = "https://example.com/humidity.png";  // URL para imagen de alta humedad
+                    } else if (temperatura < 5) {
+                        mensaje = "No es recomendable colgar la ropa afuera: hace demasiado frío.";
+                        imagen = "https://example.com/cold.png";  // URL para imagen de frío
+                    } else {
+                        mensaje = "Es un buen momento para colgar la ropa afuera.";
+                        imagen = "https://example.com/sunny.png";  // URL para imagen de clima soleado
+                    }
+
+                    document.getElementById("resultado").innerHTML = `
+                        <p><span class="highlight">Clima:</span> ${descripcion.charAt(0).toUpperCase() + descripcion.slice(1)}</p>
+                        <p><span class="highlight">Temperatura:</span> ${temperatura}°C</p>
+                        <p><span class="highlight">Humedad:</span> ${humedad}%</p>
+                        <p><strong>${mensaje}</strong></p>
+                    `;
+                    document.getElementById("weather-image").src = imagen;
+                })
+                .catch(error => {
+                    console.error("Error al obtener el clima:", error);
+                    alert("Hubo un problema al obtener el clima.");
+                });
+        }
+    </script>
+</head>
+<body onload="inicializarMapa()">
+    <div class="container">
+        <div id="map"></div>
+        <div class="info">
+            <h1>¿Es un buen momento para colgar la ropa?</h1>
+            <label for="address">Ingresa tu dirección:</label>
+            <input id="address" type="text" placeholder="Escribe tu dirección aquí">
+            <button onclick="obtenerCoordenadas()">Consultar Clima</button>
+            <div id="resultado"></div>
+            <img id="weather-image" class="weather-image" alt="Imagen del clima">
+        </div>
+    </div>
+</body>
+</html>
