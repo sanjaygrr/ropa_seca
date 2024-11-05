@@ -132,7 +132,7 @@
 
         function obtenerClima(lat, lon) {
             const apiKey = "af043322c5d5657c7b6c16a888ecd196";
-            const url = `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
 
             fetch(url)
                 .then(response => response.json())
