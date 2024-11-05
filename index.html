@@ -3,101 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clima para Colgar la Ropa</title>
+    <title>Clima para Colgar la Ropa 🌞</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: #e6f7ff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f3e9ff; /* Fondo lila claro */
             display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+            flex-direction: column;
+            min-height: 100vh;
             margin: 0;
-            padding: 20px;
+        }
+
+        header, footer {
+            position: fixed;
+            width: 100%;
+            color: #fff;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            z-index: 1000;
+        }
+
+        header {
+            top: 0;
+            background-color: #9b59b6; /* Morado brillante */
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        footer {
+            bottom: 0;
+            background-color: #8e44ad; /* Morado oscuro */
+            padding: 8px;
+            box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .container {
-            display: flex;
-            flex-direction: row;
-            max-width: 800px;
-            width: 100%;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+            flex: 1;
+            padding-top: 80px;
+            padding-bottom: 50px;
         }
 
         #map {
             height: 400px;
-            width: 50%;
+            width: 100%;
+            border-radius: 8px;
+            border: 2px solid #d7bce8; /* Borde morado claro */
         }
 
         .info {
-            padding: 20px;
-            width: 50%;
             text-align: center;
-            background: #f9f9f9;
+            background: #fff7f9; /* Fondo rosa claro */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .info h1 {
-            color: #007acc;
+            color: #8e44ad;
             margin-top: 0;
-        }
-
-        .info label {
-            font-weight: bold;
-            color: #555;
-        }
-
-        .info #address {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-top: 10px;
-            margin-bottom: 20px;
-            font-size: 16px;
-        }
-
-        .info #resultado {
-            color: #333;
-            font-size: 16px;
-            line-height: 1.6;
-            margin-top: 20px;
-        }
-
-        .info #resultado p {
-            margin: 5px 0;
+            font-size: 1.5rem;
+            font-weight: 600;
         }
 
         .highlight {
-            color: #007acc;
+            color: #d35400; /* Naranja brillante */
             font-weight: bold;
         }
 
         .weather-image {
-            width: 100px;
+            width: 80px;
             margin-top: 20px;
         }
 
-        /* Media query para pantallas móviles */
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-
-            #map {
-                width: 100%;
-                height: 300px;
-            }
-
-            .info {
-                width: 100%;
-            }
+        .analysis-text {
+            font-size: 0.95rem;
+            color: #333;
+            margin-top: 15px;
+            background-color: #fdf2ff;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #d7bce8;
         }
+
+        .btn-primary {
+            background-color: #9b59b6;
+            border: none;
+            font-weight: bold;
+        }
+
+        .btn-primary:hover {
+            background-color: #8e44ad;
+        }
+
     </style>
+</head>
+<body onload="inicializarMapa()">
+    <!-- Encabezado -->
+    <header>
+        🌤️ Consulta de Clima para Colgar la Ropa 👕
+    </header>
+
+    <div class="container my-4">
+        <div class="row">
+            <!-- Mapa -->
+            <div class="col-lg-6 col-12 mb-4">
+                <div id="map"></div>
+            </div>
+            <!-- Información -->
+            <div class="col-lg-6 col-12">
+                <div class="info">
+                    <h1>¿Es el momento ideal para colgar la ropa? 🧺</h1>
+                    <label for="address" class="font-weight-bold">Ingresa tu dirección:</label>
+                    <input id="address" type="text" class="form-control mb-3" placeholder="Escribe tu dirección aquí">
+                    <button onclick="obtenerCoordenadas()" class="btn btn-primary btn-block">Consultar Clima</button>
+                    <div id="resultado" class="mt-4"></div>
+                    <img id="weather-image" class="weather-image" alt="Imagen del clima">
+                    <div class="analysis-text" id="analysis-text"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie de página -->
+    <footer>
+        📅 Revisa el clima antes de colgar tu ropa - ¡Cuida tu tiempo y energía! ⚡
+    </footer>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
     <script>
         const openCageApiKey = "1f2487fb0f084398b44c82bc7aa8903a";
         let map;
@@ -109,6 +150,13 @@
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
+
+            // Agrega evento de clic en el mapa para seleccionar ubicación
+            map.on('click', function(e) {
+                const { lat, lng } = e.latlng;
+                actualizarMapa(lat, lng);
+                obtenerClima(lat, lng);
+            });
         }
 
         function obtenerCoordenadas() {
@@ -158,31 +206,35 @@
                     const descripcion = data.weather[0].description;
                     const humedad = data.main.humidity;
                     const temperatura = data.main.temp;
+                    const viento = data.wind.speed;
 
                     let mensaje;
                     let imagen;
+                    let analisis = `🌡️ Temperatura: ${temperatura}°C, 💨 Viento: ${viento} m/s, 💧 Humedad: ${humedad}%`;
 
                     if (descripcion.includes("rain") || descripcion.includes("lluvia")) {
                         mensaje = "No es recomendable colgar la ropa afuera: está lloviendo.";
-                        imagen = "https://example.com/rain.png";  // Cambia esto a una URL real de una imagen de lluvia
-                    } else if (humedad > 80) {
-                        mensaje = "No es recomendable colgar la ropa afuera: la humedad es muy alta.";
-                        imagen = "https://example.com/humidity.png";  // URL para imagen de alta humedad
+                        imagen = "rain.png";
+                    } else if (humedad > 80 || viento > 10) {
+                        mensaje = "No es recomendable colgar la ropa afuera debido a alta humedad o viento fuerte.";
+                        imagen = "humidity.png";
                     } else if (temperatura < 5) {
                         mensaje = "No es recomendable colgar la ropa afuera: hace demasiado frío.";
-                        imagen = "https://example.com/cold.png";  // URL para imagen de frío
+                        imagen = "cold.png";
+                    } else if (temperatura > 30) {
+                        mensaje = "Hace calor intenso, puede secar la ropa rápidamente pero evitar la exposición prolongada.";
+                        imagen = "sunny.png";
                     } else {
                         mensaje = "Es un buen momento para colgar la ropa afuera.";
-                        imagen = "https://example.com/sunny.png";  // URL para imagen de clima soleado
+                        imagen = "sunny.png";
                     }
 
                     document.getElementById("resultado").innerHTML = `
                         <p><span class="highlight">Clima:</span> ${descripcion.charAt(0).toUpperCase() + descripcion.slice(1)}</p>
-                        <p><span class="highlight">Temperatura:</span> ${temperatura}°C</p>
-                        <p><span class="highlight">Humedad:</span> ${humedad}%</p>
                         <p><strong>${mensaje}</strong></p>
                     `;
                     document.getElementById("weather-image").src = imagen;
+                    document.getElementById("analysis-text").innerText = analisis;
                 })
                 .catch(error => {
                     console.error("Error al obtener el clima:", error);
@@ -190,18 +242,5 @@
                 });
         }
     </script>
-</head>
-<body onload="inicializarMapa()">
-    <div class="container">
-        <div id="map"></div>
-        <div class="info">
-            <h1>¿Es un buen momento para colgar la ropa?</h1>
-            <label for="address">Ingresa tu dirección:</label>
-            <input id="address" type="text" placeholder="Escribe tu dirección aquí">
-            <button onclick="obtenerCoordenadas()">Consultar Clima</button>
-            <div id="resultado"></div>
-            <img id="weather-image" class="weather-image" alt="Imagen del clima">
-        </div>
-    </div>
 </body>
 </html>
